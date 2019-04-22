@@ -2,26 +2,39 @@
 #include <iostream>
 
 //--------------------------------------------------------------
+
+// "The Voronoi Tessellation de- scribes a system of the self-organization of biological struc- tures visible on the wing of a dragonfly, the turtle shell, honeycomb or the shell of a sea urchin".
+// Application of Voronoi diagrams in contemporary architecture and town planning written by Anna Nowak
+
+//The Voronoi diagram is defined for a given set of n points as plain divided into n areas in such a manner that each point in any cell is closer to a specific point from a set of n points than the remaining n-1 points.
+
+// While this technique is now mainly used for desiging buildings, I figured it was interesting to implement the voronoi diagram for the projection mapping to create visuals which hint at pattern found in nature.
+// Made with the ofxVoronoi2d addon
+
 void ofApp::setup(){
-  ofSetFrameRate(60);
-  count = 0;
-   ofEnableAntiAliasing();
-  ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-  // voronoi.setMinDist(std::epsilon<float>());
-    back.load("merged.png");
-    fbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGBA);
+    ofSetFrameRate(60);
+    count = 0;
+    ofEnableAntiAliasing();
+    ofEnableBlendMode(OF_BLENDMODE_ALPHA);
     alpha = 1;
     a = false;
+    
+// Set up the buffer
+// I use a buffer to export the sketch in several pngs
+// In this way I can export the visuals with no background and edit it in After effect afterwards to make it match the uv map of the 3D structure.
+fbo.allocate(ofGetWidth(), ofGetHeight(), GL_RGBA);
+
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
     
-    // Voronoi Canvas
+// Voronoi Canvas
   if(pts.size() != count){
+    // Size of the canvas
     voronoi.compute(pts, ofRectangle(200, 250, ofGetWidth() - 200, 350), 100);
     count = pts.size();
-    // rebuild mesh
+    // Rebuild mesh
     mesh.clear();
     voronoi.buildMesh(mesh);
 
@@ -37,18 +50,22 @@ void ofApp::update(){
             std::cout<<r<<std::endl;
             std::cout<<b<<std::endl;
 
-      colors[mesh.getIndex(i + 0)] = ofFloatColor(1, 1, 1, alpha);// c; // cell center
-      colors[mesh.getIndex(i + 1)] = ofFloatColor(r, 1, 1.0f, alpha); // cell border
-      colors[mesh.getIndex(i + 2)] = ofFloatColor(0, 0, b, alpha); // cell border
+// cell center
+      colors[mesh.getIndex(i + 0)] = ofFloatColor(1, 1, 1, alpha);
+// cell border
+      colors[mesh.getIndex(i + 1)] = ofFloatColor(r, 1, 1.0f, alpha);
+      colors[mesh.getIndex(i + 2)] = ofFloatColor(0, 0, b, alpha);
     }
     }
     for(unsigned int i = 0; i < M; ++i) mesh.addColor(colors[i]);
   }
     
-// Developement
+// Animation
+// Using perlin noise to create a smooth random effect
     float time = ofGetElapsedTimef() / 5;
     float noise1 = ofNoise(10 * time);
     float noise2 = ofNoise(15 * time);
+    // vX and vY are the coordinates of the points : ofVec2f(vX, vY)
     float vX = ofMap(noise1, 0.3, 0.7, 0, ofGetWidth());
     float vY = ofMap(noise2, 0.3, 0.7, 0, ofGetHeight());
 
@@ -66,46 +83,21 @@ void ofApp::update(){
         pts.erase(pts.begin() + 2);
         pts.erase(pts.begin() + 3);
     }
-    
-//    if (a){
-//        float t = ofGetElapsedTimef();
-//        float phase = sin (time);
-//        alpha = ofMap(phase, -1, 1, 1, 0.9);
-//    }
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
 
-    
-//    back.draw(0,0);
     ofBackground(0);
-    if(count < 1) return;
     
 // FBO START
-
 //    fbo.begin();
 //    ofClear(255,255,255, 0);
 
-
-// Modes
-//  switch(dispMode){
-//    case '1':
-//      glPointSize(5.0f);
-//      mesh.drawVertices();
-//      // mesh.draw(OF_MESH_POINTS);
-//      break;
-//    case '2':
-//      mesh.drawWireframe();
-//      break;
-//    case '3':
-//      //mesh.draw(OF_MESH_FILL);
-//      mesh.drawFaces();
-//      break;
-//    default:
-    
 // Draw cells
     mesh.draw();
+
+// Possibility to draw the contours of the diagram
 //    ofxSegmentIterator it = voronoi.edges();
 //      for(; it; ++it){
 //        ofxSegment e = *it;
@@ -116,7 +108,6 @@ void ofApp::draw(){
 // FBO END
     
 //    fbo.end();
-//
 //    ofPixels pix;
 //    fbo.readToPixels(pix);
 //    ofSaveImage(pix, ofToString(counter)+".png", OF_IMAGE_QUALITY_BEST);
@@ -125,28 +116,10 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-  std::cout << "Pressed " << char(key) << " (int=" << key << ")\n";
-  switch(key){
-    case 'c':
-      pts.clear();
-      mesh.clear();
-      count = 0; // commented to trigger voronoi update
 
-      break;
-    case 'f':
-      ofToggleFullscreen();
-      break;
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-      dispMode = key;
-      break;
-  }
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-//  pts.push_back(ofVec2f(float(x), float(y)));
 }
 
